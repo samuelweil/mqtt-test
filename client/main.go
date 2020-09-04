@@ -17,7 +17,7 @@ func main() {
 
 	client := connect(opts)
 
-	token := client.Subscribe("/#", byte(0), handleMessage)
+	token := client.Subscribe("sensors/#", byte(0), handleMessage)
 	if token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}

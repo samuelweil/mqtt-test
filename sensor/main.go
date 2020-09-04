@@ -26,10 +26,39 @@ func main() {
 	}
 }
 
+type sensorType struct {
+	Name  string
+	Min   int
+	Max   int
+	Units string
+}
+
+var sensorTypes []sensorType = []sensorType{
+	{
+		Name:  "temperature",
+		Min:   0,
+		Max:   100,
+		Units: "F",
+	},
+	{
+		Name:  "humidity",
+		Min:   0,
+		Max:   100,
+		Units: "%",
+	},
+	{
+		Name:  "pressure",
+		Min:   0,
+		Max:   30,
+		Units: "psi",
+	},
+}
+
 type Sensor struct {
 	mqttClient mqtt.Client
 	ID         string
-	topic      string
+	typ        sensorType
+	zoneID     string
 }
 
 func NewSensor(mqttBroker string) *Sensor {
@@ -42,44 +71,43 @@ func NewSensor(mqttBroker string) *Sensor {
 		sensorID = uuid.New().String()
 	}
 
-	topic := fmt.Sprintf("/sensors/temperature/%s", sensorID)
+	sensTypeInt := rand.Intn(len(sensorTypes))
 
 	return &Sensor{
 		mqttClient: mqttClient,
 		ID:         sensorID,
-		topic:      topic,
+		typ:        sensorTypes[sensTypeInt],
+		zoneID:     uuid.New().String(),
 	}
 }
 
-const (
-	sensorMax = 100
-	sensorMin = 0
-)
+func (s *Sensor) topic() string {
+	return fmt.Sprintf("sensors/%s/%s/%s", s.ID, s.zoneID, s.typ.Name)
+}
+
+func (s *Sensor) randValue() float32 {
+	return float32(rand.Intn(s.typ.Max-s.typ.Min) + s.typ.Min)
+}
 
 type SensorPayload struct {
-	Timestamp  string  `json:"timeStamp"`
-	SensorID   string  `json:"sensorId"`
-	SensorType string  `json:"sensorType"`
-	Value      float32 `json:"value"`
-	Units      string  `json:"units"`
+	Timestamp string  `json:"timeStamp"`
+	Value     float32 `json:"value"`
+	Units     string  `json:"units"`
 }
 
 func (s *Sensor) Poll() {
-	value := float32(rand.Intn(sensorMax) + sensorMin)
 
 	payload, err := json.Marshal(SensorPayload{
-		SensorID:   s.ID,
-		SensorType: "temperature",
-		Value:      value,
-		Units:      "fahrenheit",
-		Timestamp:  time.Now().Format(time.RFC3339),
+		Value:     s.randValue(),
+		Units:     s.typ.Units,
+		Timestamp: time.Now().Format(time.RFC3339),
 	})
 	if err != nil {
 		log.Printf("Error creating message payload %s", err)
 		return
 	}
 
-	token := s.mqttClient.Publish(s.topic, byte(0), false, payload)
+	token := s.mqttClient.Publish(s.topic(), byte(0), false, payload)
 	if token.Wait() && token.Error() != nil {
 		log.Printf("Error sending sensor reading: %s", token.Error())
 	}
