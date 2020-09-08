@@ -13,8 +13,6 @@ func main() {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker("tcp://broker:1883")
 
-	fmt.Println(opts)
-
 	client := connect(opts)
 
 	token := client.Subscribe("sensors/#", byte(0), handleMessage)
