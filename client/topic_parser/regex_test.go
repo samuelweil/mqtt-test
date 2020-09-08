@@ -1,4 +1,4 @@
-package main
+package topic_parser
 
 import (
 	"testing"
