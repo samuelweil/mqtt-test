@@ -12,3 +12,7 @@ func convertPath(path string) string {
 		return fmt.Sprintf("(?P<%s>.*)", ident[1:len(ident)-1])
 	})
 }
+
+func topic(origTopic string) string {
+	return pathConvert.ReplaceAllString(origTopic, "+")
+}

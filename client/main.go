@@ -9,6 +9,13 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+type Client struct{}
+
+func (c *Client) Subscribe(topic string) chan map[string]interface{} {
+	result := make(chan map[string]interface{})
+	return result
+}
+
 func main() {
 	fmt.Println("Starting client")
 

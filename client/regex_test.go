@@ -33,10 +33,24 @@ func TestConvertPath(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := convertPath(test.inp)
-		if result != test.exp {
-			t.Errorf("Expected \"%s\", got \"%s\"", test.exp, result)
-		}
+		checkString(t, test.exp, convertPath(test.inp))
+	}
+
+}
+
+func TestTopicChange(t *testing.T) {
+
+	tests := []struct {
+		inp, exp string
+	}{
+		{
+			"{first}/{second}/messages/",
+			"+/+/messages/",
+		},
+	}
+
+	for _, test := range tests {
+		checkString(t, test.exp, topic(test.inp))
 	}
 
 }
